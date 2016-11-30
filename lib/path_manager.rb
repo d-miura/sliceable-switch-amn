@@ -10,12 +10,12 @@ class PathManager < Trema::Controller
   end
 
   # This method smells of :reek:FeatureEnvy but ignores them
-  def packet_in(_dpid, message)
-    path = maybe_create_shortest_path(message)
+  def packet_in(_dpid, packet_in)
+    path = maybe_create_shortest_path(packet_in)
     ports = path ? [path.out_port] : @graph.external_ports
     ports.each do |each|
       send_packet_out(each.dpid,
-                      raw_data: message.raw_data,
+                      raw_data: packet_in.raw_data,
                       actions: SendOutPort.new(each.number))
     end
   end
@@ -44,9 +44,10 @@ class PathManager < Trema::Controller
 
   private
 
+  # This method smells of :reek:FeatureEnvy but ignores them
   def maybe_create_shortest_path(packet_in)
-    shortest_path = @graph.dijkstra(packet_in.source_mac,
-                                    packet_in.destination_mac)
+    shortest_path =
+      @graph.dijkstra(packet_in.source_mac, packet_in.destination_mac)
     return unless shortest_path
     Path.create shortest_path, packet_in
   end
