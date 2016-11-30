@@ -42,6 +42,34 @@ module SliceApp
     end
   end
 
+  desc 'Split virtual slices'
+  command :split do |c|
+    c.desc 'Slice names split into'
+    c.flag [:i, :into]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail '--into option is mandatory.' unless options[:into]
+      fail 'arguments are too few.' if args.length != 3
+      slice(options[:socket_dir]).split(args)
+    end
+  end
+
+  desc 'Join virtual slices'
+  command :join do |c|
+    c.desc 'Slice name join into'
+    c.flag [:i, :into]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail '--into option is mandatory.' unless options[:into]
+      fail 'arguments are too few.' if args.length != 3
+      slice(options[:socket_dir]).join(args)
+    end
+  end
+
   desc 'Lists slices'
   command :list do |c|
     c.desc 'Location to find socket files'
