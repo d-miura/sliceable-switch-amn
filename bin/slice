@@ -51,8 +51,8 @@ module SliceApp
 
     c.action do |_global_options, options, args|
       fail '--into option is mandatory.' unless options[:into]
-      fail 'arguments are too few.' if args.length != 3
-      slice(options[:socket_dir]).split(args)
+      fail 'arguments are too few.' if args.length != 1
+      slice(options[:socket_dir]).split(args, options[:into])
     end
   end
 
@@ -65,8 +65,8 @@ module SliceApp
 
     c.action do |_global_options, options, args|
       fail '--into option is mandatory.' unless options[:into]
-      fail 'arguments are too few.' if args.length != 3
-      slice(options[:socket_dir]).join(args)
+      fail 'arguments are too few.' if args.length != 2
+      slice(options[:socket_dir]).join(args, options[:into])
     end
   end
 
