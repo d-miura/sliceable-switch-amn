@@ -21,12 +21,12 @@ class Slice
     new(name).tap { |slice| all << slice }
   end
 
-  def self.split(*args)
-    base_slice = find_by!(args[0])#arg[0]:splited slice
-    split_to = Array.new(args[1].split(":")[0], args[2].split(":")[0])
+  def self.split(base, *into)
+    base_slice = find_by!(base)#arg[0]:splited slice
+    split_to = Array.new(into[0].split(":")[0], into[1].split(":")[0])
     split_to.each{|each| fail SliceAlreadyExistsError, "Slice #{each} already exists" if find_by(name: each)}
 
-    hosts_mac_addrs = Array.new(args[1].split(":")[1].split(","), args[2].split(":")[1].split(","))
+    hosts_mac_addrs = Array.new(into[0].split(":")[1].split(","), into[1].split(":")[1].split(","))
     ports = base_slice.ports
     macs = []
     ports.each{|each| macs << base_slice.mac_addresses(each)}
@@ -37,15 +37,15 @@ class Slice
         macs.zip(ports).each {|port,each| each.each{|mac| tmp_slice.add_mac_address(mac_addr, port) if mac == mac_addr}}
       end
     end
-    destory(args[0])
-    puts "split #{args[0]} into #{args[1].split(":")[0]} and #{args[2].split(":")[0]}"
+    destory(base)
+    puts "split #{base} into #{into[0].split(":")[0]} and #{into[1].split(":")[0]}"
   end
 
-  def self.join(*args)
-    base_slices = Array.new(args[0], args[1]).tap{|each| find_by!(each)}
-    fail SliceAlreadyExistsError, "Slice #{args[2]} already exists" if find_by(name: args[2])
+  def self.join(*base, into)
+    base_slices = Array.new(base[0], base[1]).tap{|each| find_by!(each)}
+    fail SliceAlreadyExistsError, "Slice #{into} already exists" if find_by(name: into)
 
-    join_to = create(args[2])
+    join_to = create(into)
     base_slices.each do |base_slice|
       base_slice.ports.each do |port|
         join_to.add_port(port) if !join_to.find_port(port)
@@ -53,7 +53,7 @@ class Slice
       end
       destroy(base_slice)
     end
-    puts "join #{args[0]} and #{args[1]} into #{args[2]}"
+    puts "join #{base[0]} and #{base[1]} into #{into}"
   end
 
   # This method smells of :reek:NestedIterators but ignores them
