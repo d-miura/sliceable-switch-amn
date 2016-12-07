@@ -22,8 +22,8 @@ class Slice
   end
 
   def self.split(base, *into)
-    base_slice = find_by!(name: base)#arg[0]:splited slice
-    split_to_name = Array.new().tap{|ary| into.each{|each| ary << each.split(":")[0]}}
+    base_slice = find_by!(name: base)#splited slice (object)
+    split_to_name = Array.new().tap{|ary| into.each{|each| ary << each.split(":")[0]}} #slice names spliting to
     split_to_name.each{|each| fail SliceAlreadyExistsError, "Slice #{each} already exists" if find_by(name: each)}
 
     hosts_mac_addrs = Array.new().tap{|ary| into.each{|each| each.split(":")[1] ? ary << each.split(":", 2)[1].split(",") : ary << [] }}
