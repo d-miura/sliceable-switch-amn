@@ -51,7 +51,7 @@ class Slice
         join_to.add_port(port) if !join_to.find_port(port)
         base_slice.mac_addresses(port).each{|mac| joint_to.add_mac_address(mac, port)}
       end
-      destroy(base_slice)
+      destroy(name: base_slice)
     end
     puts "join #{base[0]} and #{base[1]} into #{into}"
   end
