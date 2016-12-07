@@ -23,15 +23,15 @@ class Slice
 
   def self.split(base, *into)
     base_slice = find_by!(base)#arg[0]:splited slice
-    split_to = Array.new(into[0].split(":")[0], into[1].split(":")[0])
-    split_to.each{|each| fail SliceAlreadyExistsError, "Slice #{each} already exists" if find_by(name: each)}
+    split_to_name = Array.new(into[0].split(":")[0], into[1].split(":")[0])
+    split_to_name.each{|each| fail SliceAlreadyExistsError, "Slice #{each} already exists" if find_by(name: each)}
 
     hosts_mac_addrs = Array.new(into[0].split(":")[1].split(","), into[1].split(":")[1].split(","))
     ports = base_slice.ports
     macs = []
     ports.each{|each| macs << base_slice.mac_addresses(each)}
-    split_to.zip(hosts_mac_addrs).each do |slice, mac_addrs|
-      tmp_slice = create(slice)
+    split_to_name.zip(hosts_mac_addrs).each do |slice_name, mac_addrs|
+      tmp_slice = create(slice_name)
       ports.each{|each| tmp_slice.add_port(each)}
       mac_addrs.each do |mac_addr|
         macs.zip(ports).each {|port,each| each.each{|mac| tmp_slice.add_mac_address(mac_addr, port) if mac == mac_addr}}
@@ -42,7 +42,7 @@ class Slice
   end
 
   def self.join(*base, into)
-    base_slices = Array.new(base[0], base[1]).tap{|each| find_by!(each)}
+    base_slices = {}.tap{|slices| base.each{|each| slices << find_by!(each)}}
     fail SliceAlreadyExistsError, "Slice #{into} already exists" if find_by(name: into)
 
     join_to = create(into)
