@@ -65,6 +65,8 @@ class TopologyController < Trema::Controller
                                  dpid,
                                  packet_in.in_port)
       end
+    else
+      p packet_in.ether_type.to_hex
     end
   end
 
