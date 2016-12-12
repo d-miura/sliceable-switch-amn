@@ -21,12 +21,6 @@
 </head>
 <body>
 
-  <div id="mynetwork"></div>
-  <input type="button" value="prev" onclick="buttonClick(-1);"/>
-  <input type="button" value="next" onclick="buttonClick(1);"/>
-
-
-
 </body>
 <script type="text/javascript">
 var last_date = [1, 2];
@@ -36,20 +30,6 @@ var edges = [];
 var network = [];
 var paths = [];
 var DIR = './images/';
-var globalPathIndex = 0;
-
-function buttonClick(diff){
-  globalPathIndex += diff;
-  if(globalPathIndex >= paths.length){
-    globalPathIndex = 0;
-  }else if(globalPathIndex < 0){
-    globalPathIndex = paths.length -1;
-  }
-  console.log(globalPathIndex);
-  require(globalPathIndex)
-
-
-}
 
 function getUpdate( ) {
   var fileNames = ["./topology.js","./slice.js"];
