@@ -120,7 +120,7 @@ class Slice
       idx += 1
     end
     
-    File.open("output/slice.js","w") do |out|
+    File.open("./output/slice.js","w") do |out|
       out.write(outtext)
     end
   end
