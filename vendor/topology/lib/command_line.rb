@@ -33,7 +33,7 @@ class CommandLine
   end
 
   def define_text_command
-    default_command :text
+    # default_command :text
     desc 'Displays topology information (text mode)'
     command :text do |cmd|
       cmd.action(&method(:create_text_view))
@@ -41,6 +41,7 @@ class CommandLine
   end
 
   def define_graphviz_command
+    default_command :graphviz
     desc 'Displays topology information (Graphviz mode)'
     arg_name 'output_file'
     command :graphviz do |cmd|
@@ -52,6 +53,7 @@ class CommandLine
 
   def create_text_view(_global_options, _options, _args)
     @view = View::Text.new(@logger)
+
   end
 
   def create_graphviz_view(_global_options, _options, args)

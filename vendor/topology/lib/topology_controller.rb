@@ -17,6 +17,7 @@ class TopologyController < Trema::Controller
   def start(args = [])
     @command_line.parse(args)
     @topology.add_observer @command_line.view
+    logger.info "#{@command_line.view}"
     logger.info "Topology started (#{@command_line.view})."
     self
   end
