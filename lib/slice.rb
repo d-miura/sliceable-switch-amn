@@ -12,7 +12,7 @@ class Slice
   extend DRb::DRbUndumped
   include DRb::DRbUndumped
 
-  cattr_accessor(:all, instance_reader: false) { [] }
+  cattr_accessor(:all, :colors, instance_reader: false) { [] }
 
   def self.create(name)
     if find_by(name: name)
@@ -51,6 +51,7 @@ class Slice
     end
     destroy(base_slice.name)
     puts "split #{base} into #{into[0].split(":")[0]} and #{into[1].split(":")[0]}"
+    write_slice_info
   end
 
   def self.join(base, into)
@@ -70,6 +71,7 @@ class Slice
       destroy(base_slice.name)
     end
     puts "join #{base[0]} and #{base[1]} into #{into}"
+    write_slice_info
   end
 
   # This method smells of :reek:NestedIterators but ignores them
@@ -98,11 +100,28 @@ class Slice
     all.clear
   end
 
+  def self.write_slice_info
+    color_list = ["red","green","yellow","blue","cyan","magenda","orange","pink"]
+    idx = 0
+    outtext = Array.new
+    all.each do |slice|
+      slice.ports.each do |mac|
+        outtext.push(sprintf("nodes.push({id: %d, label: '%#x', font: {size:15, color:'%s', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});", mac.to_i, mac.to_hex, color_list[idx]))
+      end
+      idx += 1
+    end
+    
+    File.open("output/slice.js","w") do |out|
+      out.write(outtext)
+    end
+  end
+
   attr_reader :name
 
-  def initialize(name)
+  def initialize(name,color)
     @name = name
     @ports = Hash.new([].freeze)
+    @color = color
   end
   private_class_method :new
 
@@ -144,6 +163,7 @@ class Slice
            "MAC address #{mac_address} already exists")
     end
     @ports[port] += [Pio::Mac.new(mac_address)]
+    write_slice_info
   end
 
   def delete_mac_address(mac_address, port_attrs)
@@ -154,6 +174,7 @@ class Slice
       each.endpoints.include? [Pio::Mac.new(mac_address),
                                Topology::Port.create(port_attrs)]
     end.each(&:destroy)
+    write_slice_info
   end
 
   def find_mac_address(port_attrs, mac_address)
