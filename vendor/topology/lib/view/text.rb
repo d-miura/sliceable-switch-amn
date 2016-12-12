@@ -1,3 +1,5 @@
+require 'pio'
+
 module View
   # Topology controller's CUI.
   class Text
@@ -31,6 +33,11 @@ module View
     def delete_link(port_a, port_b, topology)
       link = format('%#x-%#x', *([port_a.dpid, port_b.dpid].sort))
       show_status "Link #{link} deleted", topology.links
+    end
+
+    #added (2016.11.9) show when host is added
+    def add_host(mac_address, port, topology)
+      show_status("host #{mac_address} added", topology.hosts)
     end
 
     def to_s

@@ -1,4 +1,5 @@
 require 'graphviz'
+require 'pio'
 
 module View
   # Topology controller's GUI (graphviz).
@@ -16,6 +17,11 @@ module View
         topology.links.each do |each|
           next unless nodes[each.dpid_a] && nodes[each.dpid_b]
           gviz.add_edges nodes[each.dpid_a], nodes[each.dpid_b]
+        end
+        #added (2016.11.9) add ellipse with ip_address and link between host and switch
+        topology.hosts.each do |each|  #for all host
+          host = gviz.add_nodes(each[1].to_s, shape: 'ellipse')  #add ellipse with ip_address(each[1])
+          gviz.add_edges host, nodes[each[2]]  #add link between host and switch(each[2]:switch dpid)
         end
         gviz.output png: @output
       end

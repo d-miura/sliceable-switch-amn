@@ -21,6 +21,7 @@ class Topology
 
   attr_reader :links
   attr_reader :ports
+  attr_reader :hosts  #added (2016.11.9) needed to read hosts from other class(graphviz.rb)
 
   def initialize
     @observers = []
