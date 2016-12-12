@@ -52,7 +52,7 @@ function buttonClick(diff){
 }
 
 function getUpdate( ) {
-  var fileNames = ["./topology.js","./path.js"];
+  var fileNames = ["./topology.js","./slice.js"];
   for(i=0; i < fileNames.length; i++){
     var xhr = new XMLHttpRequest();
     // xhr.addEventListener('loadend',loadendFunction(ev));
@@ -78,24 +78,24 @@ function require(pathIndex) {
   req.send("");
   eval(req.responseText);
   var req = new XMLHttpRequest();
-  req.open("GET", "./path.js", false);
+  req.open("GET", "./slice.js", false);
   req.send("");
   eval(req.responseText);
 
-  for(i=0;i<paths[pathIndex].length;i++){
-    labelID = paths[pathIndex][i].label;
-    fromID = paths[pathIndex][i].from;
-    toID = paths[pathIndex][i].to;
-    edges.some(function(v, i){
-        if (v.from == fromID && v.to == toID || v.to == fromID && v.from == toID){
-           edges.splice(i,1);
-        }
-    });
-    edges.push({from: fromID, to: toID, color: 'red', arrows: 'to', label:labelID});
-  }
+  // for(i=0;i<paths[pathIndex].length;i++){
+  //   labelID = paths[pathIndex][i].label;
+  //   fromID = paths[pathIndex][i].from;
+  //   toID = paths[pathIndex][i].to;
+  //   edges.some(function(v, i){
+  //       if (v.from == fromID && v.to == toID || v.to == fromID && v.from == toID){
+  //          edges.splice(i,1);
+  //       }
+  //   });
+  //   edges.push({from: fromID, to: toID, color: 'red', arrows: 'to', label:labelID});
+  // }
   // console.log(edges);
-
   // create a network
+
   var container = document.getElementById('mynetwork');
   var data = {
     nodes: nodes,
