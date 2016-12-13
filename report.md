@@ -6,22 +6,6 @@
 * 原 佑輔
 * 三浦 太樹
 
-<<<<<<< HEAD
-## 1. スライスの分割、結合
-### 1.1 コマンドの仕様
-　スライスの分割ではサブコマンド`split`を定義した．
-[講義資料](http://handai-trema.github.io/deck/week8/sliceable_switch.pdf)を参考に、スライスに属する各ホストの指定にはMACアドレスを用いるものとして
-、サブコマンドの仕様を定義した．
-host1(MACアドレス: 11:11:11:11:11:11)・host2(22:22:22:22:22)・host3(33:33:33:33:33:33)・host4(44:44:44:44:44:44)が属するslice_aを、host1・host2が属するslice_bと、host3・host4が属するslice_cに分割する際は以下のようにコマンドを実行する．
-```
-./bin/slice split slice_a --into slice_b:11:11:11:11:11:11, 22:22:22:22:22:22 slice_c:33:33:33:33:33:33, 44:44:44:44:44:44
-```
-スライスを分割する際に、分割元のスライスに属する全てのホストを分割先のスライスに割り当てなかった場合、分割元のスライスは残す仕様とした．
-
-　スライスの結合ではサブコマンド`join`を定義した．
-コマンドの仕様は、引数として結合元のスライスをスペースで区切って指定し、結合後の新たなスライス名を--intoオプションで指定するものとした．
-２つのスライスslice_aとslice_bをslice_cとして結合する際のコマンド例は以下となる．
-=======
 ## 1. スライスの分割・結合
 ### 1.1 コマンドの仕様
 　スライスの分割ではサブコマンド`split`を定義した．
@@ -29,16 +13,18 @@ host1(MACアドレス: 11:11:11:11:11:11)・host2(22:22:22:22:22)・host3(33:33:
 　host1(MACアドレス: 11:11:11:11:11:11)・host2(22:22:22:22:22)・host3(33:33:33:33:33:33)・host4(44:44:44:44:44:44)が属するslice_aを、host1・host2が属するslice_bと、host3・host4が属するslice_cに分割する際は以下のようにコマンドを実行する．
 ```
 ./bin/slice split slice_a --into slice_b:11:11:11:11:11:11, 22:22:22:22:22:22 slice_c:33:33:33:33:33:33, 44:44:44:44:44:44
-```   
+```
+
 　スライスを分割する際に、分割元のスライスに属する全てのホストを分割先のスライスに割り当てなかった場合、分割元のスライスは残す仕様とした．
 
 　スライスの結合ではサブコマンド`join`を定義した．
 コマンドの仕様は、引数として結合元のスライスをスペースで区切って指定し、結合後の新たなスライス名を`--into`オプションで指定するものとした．
 ２つのスライスslice_aとslice_bを結合し、新たにslice_cを作成する際のコマンド例は以下となる．
->>>>>>> d173dc6046a11bbae09a435c1d353280d0aeba3d
+
 ```
 ./bin/slice join slice_a slice_b --into slice_c
 ```
+
 ### 1.2 実装内容
  　スライスの分割・結合を実装するにあたって修正、作成した主なファイルについて説明する．
 * /bin/slice
@@ -51,11 +37,15 @@ host1(MACアドレス: 11:11:11:11:11:11)・host2(22:22:22:22:22)・host3(33:33:
 　/output/index.htmlによって表示されるトポロジ図において、ホストの属するスライスの情報を重ねて表示する．index.htmlでは、トポロジ図におけるホストのラベルとして出力されるMACアドレスの文字の色をスライスごとに異なる色で表示される．  
 　index.htmlは1秒間隔で更新されるが、表示間隔の更新にはタイムスタンプの取得が必要である．事前準備として/output/server.shを起動する必要がある．
 
-<<<<<<< HEAD
+### 2.2 ファイルの呼び出し関係図
+　以下にファイルを介して行っているコントローラプロセス~ブラウザ間のトポロジ情報，スライス情報のやり取りの関係を図で示す．
 
-### 2.2 実装内容
+![関係図](./fileflow.png)
+
+### 2.3 実装内容
 * /lib/slice.rb
- * スライスの出力ファイルslice.jsを出力するメソッドwrite_slice_infoを追加
+ * スライスの出力ファイルslice.jsを出力するメソッドwrite_slice_infoを追加．このメソッドでは、Sliceクラスのクラス変数allを参照し、スライスごとに生成されるSliceクラスのインスタンスから、そのスライスに属するホストのmacアドレスを取得し、スライスの情報をノードのラベルの色情報として付加してslice.jsに出力している．
+
 
 ## 3. REST APIの追加
 ### 3.1 実装内容
@@ -100,70 +90,6 @@ host1(MACアドレス: 11:11:11:11:11:11)・host2(22:22:22:22:22)・host3(33:33:
 以下に統合機能のコマンドの使い方の例を示す．  
 ```curl -sS -X GET 'http://localhost:9292/base_slices_id/slice_a,slice_b/into_slice_id/slice_c'```
 
-## 4. 仮想ネットワークでの動作検証
-　./trema.confでのネットワークトポロージを使用し、仮想ネットワークにおいて動作を検証した．コントローラを起動後、コマンドライン上でスライスを定義した上で、スライスの分割・結合を行い、ブラウザ上で表示されるトポロジ図を確認した．
-### STEP.1 スライスの作成
-### STEP.2 スライスの分割
-### STEP.3 パケットの送信
-### STEP.4 スライスの結合
-### STEP.5 パケットの送信
-=======
-### 2.2 ファイルの呼び出し関係図
-　以下にファイルを介して行っているコントローラプロセス~ブラウザ間のトポロジ情報，スライス情報のやり取りの関係を図で示す．  
-
-
-![関係図](./fileflow.png)
-
-### 2.3 実装内容
-* /lib/slice.rb
- * スライスの出力ファイルslice.jsを出力するメソッドwrite_slice_infoを追加．このメソッドでは、Sliceクラスのクラス変数allを参照し、スライスごとに生成されるSliceクラスのインスタンスから、そのスライスに属するホストのmacアドレスを取得し、スライスの情報をノードのラベルの色情報として付加してslice.jsに出力している．
-
-## 3. REST APIの追加
-### 3.1 実装内容
-　スライスの分割・結合を行うREST APIを追加するために，以下の通り `lib/rest_api.rb`に分割を行う`Split a slice.`，結合を行う`Join a slice.`から始まるブロックをそれぞれ追加した．
-
- ```
-  desc 'Split a slice.'
-  params do
-    requires :base_slice_id, type: String, desc: 'Base slice.'
-    requires :into_slices_id, type: String, desc: 'Into slices(multiple).'
-  end
-  get 'base_slice_id/:base_slice_id/into_slices_id/:into_slices_id' do
-    rest_api do
-      arr = params[:into_slices_id].split(",")
-      Slice.split(params[:base_slice_id], arr[0],arr[1])
-    end
-  end
- ```
- ```
-  desc 'Join a slice.'
-  params do
-    requires :base_slices_id, type: String, desc: 'Base slices(multiple).'
-    requires :into_slice_id, type: String, desc: 'Into slice.'
-  end
-  get 'base_slices_id/:base_slices_id/into_slice_id/:into_slice_id' do
-    rest_api do
-      Slice.join(params[:base_slices_id].split(","), params[:into_slice_id])
-    end
-  end
- ```
-
-　既に実装されていたものを参考にしてこれらを実装した．`Slice`クラスにおいて定義した，スライスの分割を行うための`split`メソッド，スライスの統合を行うための`join`メソッドをそれぞれ呼び出す処理を行う．  
-　以下にスライスの分割，統合それぞれのコマンドについての簡素な説明を示す．
-
-### ①分割
-　第１入力引数に分割されるスライスIDである`base_slice_id`，第２入力引数に分割後のそれぞれのスライスIDである`into_slices_id`を入力することで，REST APIによるスライスの分割機能を実現する．このとき，第２引数には`,`区切りで分割先のスライスIDを入力する必要がある．  
-　以下に分割機能のコマンドの使い方の例を示す．  
-```
-curl -sS -X GET 'http://localhost:9292/base_slice_id/slice_a/into_slices_id/slice_b,slice_c'
-```
-
-### ②結合
-　第１入力引数に結合したいスライス（複数）を`,`で区切ったID，第２入力引数に結合後に新たに生成されるスライスIDを入力することで，REST APIによるスライスの結合機能を実現する．  
-　以下に結合機能のコマンドの使い方の例を示す．  
-```
-curl -sS -X GET 'http://localhost:9292/base_slices_id/slice_a,slice_b/into_slice_id/slice_c'
-```
 
 ## 4. 仮想ネットワークでの動作検証
 ### 4.1 スライスの分割・結合
@@ -320,13 +246,17 @@ $ ./bin/trema run ./lib/routing_switch.rb -c trema.conf -d -- --slicing
 $ ./bin/rackup
 ```
 
-次に，以下に示すコマンドで2つのスライス```slice1```, ```slice2``` を作成し，それぞれのスライスに指定したdpid，ポート番号，MACアドレスを持つホストを1つずつ追加する．詳細な説明はテキストに記載されているためここでは省略する．
+次に，以下に示すコマンドで2つのスライス```slice1```, ```slice2``` を作成し，それぞれのスライスに指定したdpid，ポート番号，MACアドレスを持つホストを1つずつ追加してそれぞれのスライスの様子を確認する．詳細な説明はテキストに記載されているためここでは省略する．
 
 ```
 $ curl -sS -X POST -d '{"name": "slice1"}' 'http://localhost:9292/slices' -H Content-Type:application/json -v
 $ curl -sS -X POST -d '{"name": "slice2"}' 'http://localhost:9292/slices' -H Content-Type:application/json -v
 $ curl -sS -X POST -d '{"name": "11:11:11:11:11:11"}' 'http://localhost:9292/slices/slice1/ports/0x1:1/mac_addresses' -H Content-Type:application/json -v
-$ curl -sS -X POST -d ’{"name": "44:44:44:44:44:44"}’ 'http://localhost:9292/slices/slice2/ports/0x6:6/mac_addresses' -H Content-Type:application/json -v
+$ curl -sS -X POST -d '{"name": "44:44:44:44:44:44"}'' 'http://localhost:9292/slices/slice2/ports/0x6:6/mac_addresses' -H Content-Type:application/json -v
+$ curl -sS -X GET 'http://localhost:9292/slices/slice1/ports'
+[{"name": "0x1:1", "dpid": 1, "port_no": 1}]
+$ curl -sS -X GET 'http://localhost:9292/slices/slice2/ports'
+[{"name": "0x6:6", "dpid": 6, "port_no": 6}]
 ```
 
 そして，先ほど作成した2つのスライス```slice1```と```slice2```を結合し，新たに```slice3```を生成することを試みる．```curl```コマンドを用いて，```slice1```と```slice2```の結合を行うメッセージをGETメソッドでサーバに対して送った．
@@ -340,7 +270,7 @@ curl -sS -X GET 'http://localhost:9292/base_slices_id/slice1,slice2/into_slice_i
 次に，只今作成した```slice3```(ホストが2つ繋がっている状態)を2つのスライス```slice4```，```slice5```に分割することを試みる．```curl```コマンドを用いて，上記の処理を行うメッセージをGETメソッドでサーバに対して送った．
 
 ```
-curl -sS -X GET 'http://localhost:9292/base_slice_id/slice3/into_slices_id/slice4,slice5
+curl -sS -X GET 'http://localhost:9292/base_slice_id/slice3/into_slices_id/slice4:11:11:11:11:11:11,slice5:44:44:44:44:44:44'
 ```
 
 このとき，正しくスライスの分割が動作したことが以下の図よりわかる．
@@ -354,8 +284,4 @@ curl -sS -X GET 'http://localhost:9292/base_slice_id/slice3/into_slices_id/slice
 #### フローエントリの重複
 　実機を用いた動作検証において、ping等で発信元と送信先の同じパケットを複数回送信すると、発信元と送信先の同じのフローエントリが複数生成される事を確認した．  
 　この現象は/lib/path.rbがpacket_inを処理する際に、フローエントリへ書き加える処理のマッチングルールをpacket_inの発生したパケットと"全く同じパケットであった場合"としたためと考えられる．pingのように同じパスを経由するパケットであっても、各パケットはICMPが異なるので、初めに到着したパケットによって追加されたフローエントリは次のパケットにマッチしないとハードウェアが判断し、再びpacket_inが発生した結果と考えられる．そこで、新しく追加するフローエントリのマッチフィールドをpacket_inの発生するパケットと全く同じパケットではなく、宛先ipアドレスが同じであることを条件とした．  
-<<<<<<< HEAD
-　この際、OpenFlowの仕様として宛先IPのみをマッチングルールにできないので、IPv4パケットとARPパケットのイーサタイプを同時にマッチングルールの条件として指定した．な
-=======
-　この際、OpenFlowの仕様として宛先IPのみをマッチングルールにできないので、IPv4パケットとARPパケットのイーサタイプを同時にマッチングルールの条件として指定した．
->>>>>>> d173dc6046a11bbae09a435c1d353280d0aeba3d
+　この際、OpenFlowの仕様として宛先IPのみをマッチングルールにできないので、IPv4パケットとARPパケットのイーサタイプを同時にマッチングルールの条件として指定した．@
