@@ -98,10 +98,149 @@ curl -sS -X GET 'http://localhost:9292/base_slices_id/slice_a,slice_b/into_slice
 ### 4.1 スライスの分割・結合
 　./trema.confでのネットワークトポロージを使用し、仮想ネットワークにおいて動作を検証した．コントローラを起動後、コマンドライン上でスライスを定義した上で、スライスの分割・結合を行い、ブラウザ上で表示されるトポロジ図を確認した．
 #### STEP.1 スライスの作成
+スライスの作成のために以下のコマンドを実行した．
+
+```
+$ ./bin/slice add slice_a
+$ ./bin/slice add_host --mac 11:11:11:11:11:11 --port 0x1:1 --slice slice_a
+$ ./bin/slice add_host --mac 22:22:22:22:22:22 --port 0x4:1 --slice slice_a
+$ ./bin/slice add_host --mac 33:33:33:33:33:33 --port 0x5:1 --slice slice_a
+$ ./bin/slice add_host --mac 44:44:44:44:44:44 --port 0x6:1 --slice slice_a
+```
+![](./step1.png)
+
+しかし，このままではホストの位置をコントローラが把握することが出来ないために以下のようにパケットを送信することで，各ホストの位置を検出できる．
+
+```
+$ ./bin/trema send_packets --source host1 --dest host2
+$ ./bin/trema send_packets --source host2 --dest host3
+$ ./bin/trema send_packets --source host3 --dest host4
+$ ./bin/trema send_packets --source host4 --dest host1
+```
+以下にホストの接続状況が把握できた時のトポロジ情報を示す．
+![](./step2.png)
+また，この時の各ホストのパケット送受信の状況を以下に示す．
+
+```
+$ ./bin/trema show_stats host1
+Packets sent:
+  192.168.0.1 -> 192.168.0.2 = 1 packet
+Packets received:
+  192.168.0.4 -> 192.168.0.1 = 1 packet
+$ ./bin/trema show_stats host2
+Packets sent:
+  192.168.0.2 -> 192.168.0.3 = 1 packet
+Packets received:
+  192.168.0.1 -> 192.168.0.2 = 1 packet
+$ ./bin/trema show_stats host3
+Packets sent:
+  192.168.0.3 -> 192.168.0.4 = 1 packet
+Packets received:
+  192.168.0.2 -> 192.168.0.3 = 1 packet
+$ ./bin/trema show_stats host4
+Packets sent:
+  192.168.0.4 -> 192.168.0.1 = 1 packet
+Packets received:
+  192.168.0.3 -> 192.168.0.4 = 1 packet
+```
+
 #### STEP.2 スライスの分割
+スライスの分割を以下のコマンドで実行した．
+
+```
+$ ./bin/slice split slice_a --into slice_b:11:11:11:11:11:11,33:33:33:33:33:33 slice_c:22:22:22:22:22:22,44:44:44:44:44:44
+$ ./bin/slice list
+slice_b
+  0x1:1
+    11:11:11:11:11:11
+  0x5:1
+    33:33:33:33:33:33
+slice_c
+  0x4:1
+    22:22:22:22:22:22
+  0x6:1
+    44:44:44:44:44:44
+```
+
+スライスのlistコマンドでスライスが分割出来ていることができる．
+また，以下にブラウザ上でのスライスの状況を示す．スライスが分割でき，スライスごとに色分けされていることが分かる．
+
+![](./step3.png)
+
 #### STEP.3 パケットの送信
+host1とhost3をslice\_bにhost2とhost4をslice\_cに分割したので，host1とhost2，また，host3とhost4同士はパケットの送受信ができない．これを以下のコマンドで確認する．
+
+```
+$ ./bin/trema send_packets --source host1 --dest host2
+$ ./bin/trema send_packets --source host1 --dest host3
+$ ./bin/trema show_stats host1
+Packets sent:
+  192.168.0.1 -> 192.168.0.2 = 2 packets
+  192.168.0.1 -> 192.168.0.3 = 1 packet
+Packets received:
+  192.168.0.4 -> 192.168.0.1 = 1 packet
+$ ./bin/trema show_stats host2
+Packets sent:
+  192.168.0.2 -> 192.168.0.3 = 1 packet
+Packets received:
+  192.168.0.1 -> 192.168.0.2 = 1 packet
+ ./bin/trema show_stats host3
+Packets sent:
+  192.168.0.3 -> 192.168.0.4 = 1 packet
+Packets received:
+  192.168.0.2 -> 192.168.0.3 = 1 packet
+  192.168.0.1 -> 192.168.0.3 = 1 packet
+```
+このようにhost1とhost2，また，host3とhost4同士はパケットの送受信ができないので，ネットワークのスライスが正しく行えていることが確認できた．
+
 #### STEP.4 スライスの結合
+スライスの結合と確認を以下のコマンドで実行した．
+
+```
+$ ./bin/slice join slice_b slice_c --into slice_a
+$ ./bin/slice list
+slice_a
+  0x1:1
+    11:11:11:11:11:11
+  0x5:1
+    33:33:33:33:33:33
+  0x4:1
+    22:22:22:22:22:22
+  0x6:1
+    44:44:44:44:44:44
+```
+先程分割されたスライスが正しく結合されている事がわかる．
+以下にブラウザでの可視化の図を示す．
+
+![](./step4.png)
+
 #### STEP.5 パケットの送信
+スライスが結合されたので，host1とhost2，host3とhost4の間でパケットの通信が行えるはずである．その確認を以下のコマンドで行った．
+
+```
+$ ./bin/trema send_packets --source host1 --dest host2
+$ ./bin/trema send_packets --source host1 --dest host3
+$ ./bin/trema show_stats host1
+Packets sent:
+  192.168.0.1 -> 192.168.0.2 = 3 packets
+  192.168.0.1 -> 192.168.0.3 = 2 packets
+Packets received:
+  192.168.0.4 -> 192.168.0.1 = 1 packet
+$ ./bin/trema show_stats host2
+Packets sent:
+  192.168.0.2 -> 192.168.0.3 = 1 packet
+Packets received:
+  192.168.0.1 -> 192.168.0.2 = 2 packets
+$ ./bin/trema show_stats host3
+Packets sent:
+  192.168.0.3 -> 192.168.0.4 = 1 packet
+Packets received:
+  192.168.0.2 -> 192.168.0.3 = 1 packet
+  192.168.0.1 -> 192.168.0.3 = 2 packets
+```
+
+正しくパケットの送受信が行われており，スライスの結合が正常に行えていることが分かる．
+
 ### 4.2 REST API
 
 ## 5. 実機での動作検証
