@@ -170,31 +170,27 @@ class RestApi < Grape::API
 
   desc 'Split a slice.'
   params do
-    requires :base, type: String, desc: 'Base slice.'
-    requires :into1, type: String, desc: 'Into slice1.'
-    requires :into2, type: String, desc: 'Into slice2.'
+    requires :base_slice_id, type: String, desc: 'Base slice.'
+    requires :into_slices_id, type: String, desc: 'Into slices(multiple).'
   end
-  get 'base_slice_id/:base/into_slices1_id/:into1/into_slices2_id/:into2' do
+  intoAry = params[:into].split(",")
+  get 'base_slice_id/:base_slice_id/into_slices_id/:into_slices_id' do
     rest_api do
-      *into = into1, into2
       Slice.find_by!(name: params[:slice_id]).
-        split(params[:base], *into)
+        split(params[:base_slice_id], intoAry)
     end
   end
 
   desc 'Join a slice.'
   params do
-    requires :base1, type: String, desc: 'Base slice1.'
-    requires :base2, type: String, desc: 'Base slice2.'
-    requires :into, type: String, desc: 'Into slice.'
+    requires :base_slices_id, type: String, desc: 'Base slices(multiple).'
+    requires :into_slice_id, type: String, desc: 'Into slice.'
   end
-  get 'base_slice1_id/:base1/base_slice2_id/:base2/into_slice_id/:into' do
+  baseAry = params[:base].split(",")
+  get 'base_slices_id/:base_slices_id/into_slice_id/:into_slice_id' do
     rest_api do
-      *base = base1, base2
       Slice.find_by!(name: params[:slice_id]).
-        join(*base, params[:into])
+        join(baseAry, params[:into_slice_id])
     end
   end
 end
-
-# rubocop:enable ClassLength
