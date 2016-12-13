@@ -238,6 +238,7 @@ Packets received:
 
 正しくパケットの送受信が行われており，スライスの結合が正常に行えていることが分かる．
 
+
 ### 4.2 REST API
 今回実装した，スライスの分割・結合機能のREST APIが正常に動作するかどうかについて確認を行った．  
 まず，REST APIを起動するためにスライス機能付きスイッチを起動し，その後```rackup```コマンドでWEBrickを起動する．
@@ -246,30 +247,28 @@ $ ./bin/trema run ./lib/routing_switch.rb -c trema.conf -d -- --slicing
 $ ./bin/rackup
 ```
 
-次に，以下に示すコマンドで2つのスライス```slice1```, ```slice2``` を作成し，それぞれのスライスに指定したdpid，ポート番号，MACアドレスを持つホストを1つずつ追加してそれぞれのスライスの様子を確認する．詳細な説明はテキストに記載されているためここでは省略する．
+次に，以下に示すコマンドで2つのスライス```slice1```, ```slice2``` を作成し，それぞれのスライスに指定したdpid，ポート番号，MACアドレスを持つホストを1つずつ追加してそれぞれのスライスの様子を確認した．詳細な説明はテキストに記載されているためここでは省略する．
 
 ```
 $ curl -sS -X POST -d '{"name": "slice1"}' 'http://localhost:9292/slices' -H Content-Type:application/json -v
 $ curl -sS -X POST -d '{"name": "slice2"}' 'http://localhost:9292/slices' -H Content-Type:application/json -v
 $ curl -sS -X POST -d '{"name": "11:11:11:11:11:11"}' 'http://localhost:9292/slices/slice1/ports/0x1:1/mac_addresses' -H Content-Type:application/json -v
 $ curl -sS -X POST -d '{"name": "44:44:44:44:44:44"}'' 'http://localhost:9292/slices/slice2/ports/0x6:6/mac_addresses' -H Content-Type:application/json -v
-$ curl -sS -X GET 'http://localhost:9292/slices/slice1/ports'
-[{"name": "0x1:1", "dpid": 1, "port_no": 1}]
-$ curl -sS -X GET 'http://localhost:9292/slices/slice2/ports'
-[{"name": "0x6:6", "dpid": 6, "port_no": 6}]
 ```
 
-上記コマンド実行後のブラウザの様子を以下の図に示す．
+上記コマンド実行後のブラウザの様子を以下の図に示す．このとき，ホスト間ではパケットの送受信を行うことはできなかった．
 
 ![](./initial.png)
+
 
 そして，先ほど作成した2つのスライス```slice1```と```slice2```を結合し，新たに```slice3```を生成することを試みる．```curl```コマンドを用いて，```slice1```と```slice2```の結合を行うメッセージをGETメソッドでサーバに対して送った．
 ```
 curl -sS -X GET 'http://localhost:9292/base_slices_id/slice1,slice2/into_slice_id/slice3'
 ```
-このとき，スライスの結合が正しく動作したことが，以下の図の色分けより確認できる．実行後，異なるスライス(異なる色分け)だったものが同一のスライス(同じ色分け)へブラウザ上で遷移している．
+このとき，スライスの結合が正しく動作したことが，以下の図の色分けより確認できる．実行後，異なるスライス(異なる色分け)だったものが同一のスライス(同じ色分け)へブラウザ上で遷移している．また，このときホスト間でパケットの送受信を行うことができた．
 
 ![](./join.png)
+
 
 次に，只今作成した```slice3```(ホストが2つ繋がっている状態)を2つのスライス```slice4```，```slice5```に分割することを試みる．```curl```コマンドを用いて，上記の処理を行うメッセージをGETメソッドでサーバに対して送った．
 
@@ -277,7 +276,7 @@ curl -sS -X GET 'http://localhost:9292/base_slices_id/slice1,slice2/into_slice_i
 curl -sS -X GET 'http://localhost:9292/base_slice_id/slice3/into_slices_id/slice4:11:11:11:11:11:11,slice5:44:44:44:44:44:44'
 ```
 
-このとき，正しくスライスの分割が動作したことが，以下の図の色分けよりわかる．実行後，同一のスライス(同じ色分け)から異なるスライス(異なる色分け)へブラウザ上で遷移している．
+このとき，正しくスライスの分割が動作したことが，以下の図の色分けよりわかる．実行後，同一のスライス(同じ色分け)から異なるスライス(異なる色分け)へブラウザ上で遷移している．また，このときホスト間でパケットの送受信を行うことはできなかった．
 
 ![](./split.png)
 
