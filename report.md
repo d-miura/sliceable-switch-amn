@@ -259,11 +259,15 @@ $ curl -sS -X GET 'http://localhost:9292/slices/slice2/ports'
 [{"name": "0x6:6", "dpid": 6, "port_no": 6}]
 ```
 
+上記コマンド実行後のブラウザの様子を以下の図に示す．
+
+![](./initial.png)
+
 そして，先ほど作成した2つのスライス```slice1```と```slice2```を結合し，新たに```slice3```を生成することを試みる．```curl```コマンドを用いて，```slice1```と```slice2```の結合を行うメッセージをGETメソッドでサーバに対して送った．
 ```
 curl -sS -X GET 'http://localhost:9292/base_slices_id/slice1,slice2/into_slice_id/slice3'
 ```
-このとき，正しくスライスの結合が動作したことが以下の図よりわかる．
+このとき，スライスの結合が正しく動作したことが，以下の図の色分けより確認できる．実行後，異なるスライス(異なる色分け)だったものが同一のスライス(同じ色分け)へブラウザ上で遷移している．
 
 ![](./join.png)
 
@@ -273,7 +277,7 @@ curl -sS -X GET 'http://localhost:9292/base_slices_id/slice1,slice2/into_slice_i
 curl -sS -X GET 'http://localhost:9292/base_slice_id/slice3/into_slices_id/slice4:11:11:11:11:11:11,slice5:44:44:44:44:44:44'
 ```
 
-このとき，正しくスライスの分割が動作したことが以下の図よりわかる．
+このとき，正しくスライスの分割が動作したことが，以下の図の色分けよりわかる．実行後，同一のスライス(同じ色分け)から異なるスライス(異なる色分け)へブラウザ上で遷移している．
 
 ![](./split.png)
 
