@@ -55,7 +55,7 @@ class TopologyController < Trema::Controller
       @topology.maybe_add_link Link.new(dpid, packet_in)
     elsif packet_in.data.is_a? Arp
       @topology.maybe_add_host(packet_in.source_mac,
-                               packet_in.source_ip_address,
+                               packet_in.sender_protocol_address,
                                dpid,
                                packet_in.in_port)
     elsif packet_in.data.is_a? Parser::IPv4Packet
@@ -65,6 +65,8 @@ class TopologyController < Trema::Controller
                                  dpid,
                                  packet_in.in_port)
       end
+    else
+      p packet_in.ether_type.to_hex
     end
   end
 

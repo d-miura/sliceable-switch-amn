@@ -167,5 +167,30 @@ class RestApi < Grape::API
         find_mac_address(Port.parse(params[:port_id]), params[:mac_address_id])
     end
   end
+
+  desc 'Split a slice.'
+  params do
+    requires :base_slice_id, type: String, desc: 'Base slice.'
+    requires :into_slices_id, type: String, desc: 'Into slices(multiple).'
+  end
+  intoAry = params[:into].split(",")
+  get 'base_slice_id/:base_slice_id/into_slices_id/:into_slices_id' do
+    rest_api do
+      Slice.find_by!(name: params[:slice_id]).
+        split(params[:base_slice_id], intoAry)
+    end
+  end
+
+  desc 'Join a slice.'
+  params do
+    requires :base_slices_id, type: String, desc: 'Base slices(multiple).'
+    requires :into_slice_id, type: String, desc: 'Into slice.'
+  end
+  baseAry = params[:base].split(",")
+  get 'base_slices_id/:base_slices_id/into_slice_id/:into_slice_id' do
+    rest_api do
+      Slice.find_by!(name: params[:slice_id]).
+        join(baseAry, params[:into_slice_id])
+    end
+  end
 end
-# rubocop:enable ClassLength
