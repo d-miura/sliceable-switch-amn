@@ -117,12 +117,12 @@ class Slice
     all.each do |slice|
       slice.ports.each do |port|
 	slice.mac_addresses(port).each do |mac|
-          outtext += sprintf("nodes.push({id: %d, label: '%s', font: {size:15, color:'%s', face:'sans'}, image:DIR+'switch.jpg', shape: 'image'});", mac.to_i, mac.to_s, color_list[idx])
+          outtext += sprintf("nodes.push({id: %d, label: '%s', font: {size:15, color:'%s', face:'sans'}, image:DIR+'host.png', shape: 'image'});", mac.to_i, mac.to_s, color_list[idx])
 	end
       end
       idx += 1
     end
-    
+
     File.open("./output/slice.js","w") do |out|
       out.write(outtext)
     end
