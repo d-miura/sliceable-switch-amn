@@ -31,3 +31,7 @@
 
 *.*~
 /bin/
+
+.DS_Store
+/output/topology.js
+/output/slice.js

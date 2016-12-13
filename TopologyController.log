@@ -1,0 +1,5 @@
+# Logfile created on 2016-12-14 06:11:14 +0900 by logger.rb/54072
+I, [2016-12-14T06:11:14.927160 #3780]  INFO -- : vis.js mode, output = topology.js
+I, [2016-12-14T06:11:14.927224 #3780]  INFO -- : Topology started (vis.js mode, output = topology.js).
+I, [2016-12-14T06:13:59.219304 #3821]  INFO -- : vis.js mode, output = topology.js
+I, [2016-12-14T06:13:59.219388 #3821]  INFO -- : Topology started (vis.js mode, output = topology.js).

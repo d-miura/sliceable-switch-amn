@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 var nodes = null;
 var edges = null;
 var network = null;
@@ -19,3 +20,5 @@ nodes.push({id: 6, label: '0x6', image:DIR+'switch.jpg', shape: 'image'});
 
 nodes.push({id: 3, label: '0x3', image:DIR+'switch.jpg', shape: 'image'});
 
+=======
+>>>>>>> 971611ce699a1996e900f1007e2e778d7c108a16
