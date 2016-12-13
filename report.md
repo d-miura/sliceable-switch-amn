@@ -298,12 +298,18 @@ curl -sS -X GET 'http://localhost:9292/base_slice_id/slice3/into_slices_id/slice
 
 ### 5.2 検証した内容
 #### ネットワークの構成
-　実機を用いた検証では，スイッチとしてVLANが６個（dpid:0x1..6），ホストとしてPCを４台接続したネットワークを構築した．
-　ホストに割り当てたipとMACアドレスの関係は以下の通り．
-host1
+　実機を用いた検証では，スイッチとしてVLANが６個（dpid:0x1..6），ホストとしてPCを４台接続したネットワークを構築した．  
+　各ホストに割り当てたipとMACアドレスの関係は以下の通り．
+
+||IPアドレス|MACアドレス|割り当てたスイッチのdpid|
+|:--:|:--|:--:|:--:|
+|host1|192.168.0.100|34:95:db:11:e6:14|0x2|
+|host2|192.168.0.11|00:25:4b:fd:d8:0d|0x5|
+|host3|192.168.0.50|74:03:bd:3d:34:9d|0x1|
+|host4|192.168.0.4|34:95:db:2c:67:53|0x11|
 
 #### STEP.1 スライスの作成
- まず，以下のコマンドを実行し，スライスを１個作成した．
+　まず，以下のコマンドを実行し，全てのホストが属するスライスslice_a作成した．
 
 ```
 $ ./bin/slice add slice_a
@@ -312,20 +318,48 @@ $ ./bin/slice add_host --mac 00:25:4b:fd:d8:0d --port 0x5:14 --slice slice_a
 $ ./bin/slice add_host --mac 74:03:bd:3d:34:9d --port 0x1:2 --slice slice_a
 $ ./bin/slice add_host --mac 34:95:db:2c:67:53 --port 0x4:11 --slice slice_a
 ```
-しかし，このままではホストの位置をコントローラが把握することが出来ないため,
-ipアドレスが１９２．１６８．０．１１であるPCから残りの3台のPCに対し，以下のようにpingを送信することで，各ホストの位置を検出した．．
+　しかし，このままではホストの位置をコントローラが把握することが出来ないため,host2から残りの3つのホストに対し，以下のようにpingを送信して各ホストの位置を検出した．
 
 ```
-pingとその結果
+$ ping 192.168.0.4
+PING 192.168.0.4 (192.168.0.4): 56 data bytes
+64 bytes from 192.168.0.4: icmp_seq=0 ttl=64 time=222.026 ms
+64 bytes from 192.168.0.4: icmp_seq=1 ttl=64 time=218.299 ms
+64 bytes from 192.168.0.4: icmp_seq=2 ttl=64 time=0.851 ms
+64 bytes from 192.168.0.4: icmp_seq=3 ttl=64 time=0.935 ms
+^C
+--- 192.168.0.4 ping statistics ---
+4 packets transmitted, 4 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.851/110.528/222.026/109.643 ms
+
+$ ping 192.168.0.100
+PING 192.168.0.100 (192.168.0.100): 56 data bytes
+64 bytes from 192.168.0.100: icmp_seq=0 ttl=64 time=239.911 ms
+64 bytes from 192.168.0.100: icmp_seq=1 ttl=64 time=250.474 ms
+64 bytes from 192.168.0.100: icmp_seq=2 ttl=64 time=1.019 ms
+64 bytes from 192.168.0.100: icmp_seq=3 ttl=64 time=1.010 ms
+64 bytes from 192.168.0.100: icmp_seq=4 ttl=64 time=0.963 ms
+^C
+--- 192.168.0.100 ping statistics ---
+5 packets transmitted, 5 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.963/98.675/250.474/119.677 ms
+
+$ ping 192.168.0.50
+PING 192.168.0.50 (192.168.0.50): 56 data bytes
+64 bytes from 192.168.0.50: icmp_seq=0 ttl=64 time=421.629 ms
+64 bytes from 192.168.0.50: icmp_seq=1 ttl=64 time=1.073 ms
+^C
+--- 192.168.0.50 ping statistics ---
+2 packets transmitted, 2 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 1.073/211.351/421.629/210.278 ms
 ```
- 各PCに対して複数回送信したpingのうち，3〜4個目以降の応答時間は．1〜2個目のものと比較すると，かなり短くなっていることが確認できる．これは，packet_inによってフローエントリが作成され，ハードウェアによって処理されるようになったことが高速化の要因と考えられる．
- pingによって他のホストの接続状況が把握でき,結果として得られたトポロジ図は以下のようになった．
+　各ホストに対して複数回送信したpingのうち，2〜3個目以降の応答時間は．1〜2個目のものと比較すると，かなり短くなっていることが確認できる．これは，最初のpacket_inによってフローエントリが作成され，以降のパケットの転送はコントローラの判断を経由せずにハードウェアによって処理されるようになったことが高速化の要因と考えられる．
+　pingによって他のホストの接続状況が把握でき,結果として得られたトポロジ図は以下のようになった．
 ![](./real_step１.png)
 
 
 #### STEP.2 スライスの分割
-続いて，以下のコマンドによりスライスを分割した．
-
+　続いて，以下のコマンドによりスライスslice_aを、host1とhost2が属するslice_b、host3とhost4の属するslice_cの2つのスライスに分割した．
 ```
 $ ./bin/slice split slice_a --into slice_b:34:95:db:11:e6:14,00:25:4b:fd:d8:0d slice_c:74:03:bd:3d:34:9d,34:95:db:2c:67:53
 $ ./bin/slice list
@@ -339,26 +373,48 @@ slice_c
     74:03:bd:3d:34:9d
   0x4:11
     34:95:db:2c:67:53
-
 ```
 
-スライスのlistコマンドでスライスが分割出来ていることができる．
-この時，ブラウザ上に表示されたトポロジ図を以下に示す．この図から，スライスが分割が成功し，スライスごとに色分けされていることが分かる．
-
+　スライスのlistコマンドでスライスが分割出来ていることが確認できる．
+　この時，ブラウザ上に表示されたトポロジ図を以下に示す．この図から，スライスの分割が成功し，色分けして表示できている事が確認できる．
 ![](./real_step2.png)
 
-#### STEP.3 パケットの送信
-ここで，ipアドレスが192.168.0.11であるPCから残りの3台のPCに対し，以下のようにpingを送信することで，スライスによってパケットの送受信が管理できているかを確認した．
-ここでは，192.168.0.100と192.168.0.11をslice\_bに，192.168.0.50と192.168.0.4をslice\_cに分割したので，
-192.168.0.100にはパケットの送信が成功するが，192.168.50と192.168.0.4にはパケットの送信が失敗することを予期している．
+#### STEP.2-2 パケットの送信による確認
+　ここで，host2から残りの3つのホストに対し，以下のようにpingを送信することで，スライスによってパケットの送受信が管理できているかを確認した．ここでは，host1とhost2をslice\_bに，host3とhost4をslice\_cに分割したので，
+host2からhost1(192.168.0.100)へはパケットの送信が成功するが，host3(192.168.50)とhost4(192.168.0.4)にはパケットの送信が失敗することを予期している．
 ```
-２回めの結果
+$ ping 192.168.0.100
+PING 192.168.0.100 (192.168.0.100): 56 data bytes
+64 bytes from 192.168.0.100: icmp_seq=0 ttl=64 time=432.455 ms
+64 bytes from 192.168.0.100: icmp_seq=1 ttl=64 time=0.820 ms
+64 bytes from 192.168.0.100: icmp_seq=2 ttl=64 time=0.964 ms
+64 bytes from 192.168.0.100: icmp_seq=3 ttl=64 time=0.949 ms
+^C
+--- 192.168.0.100 ping statistics ---
+4 packets transmitted, 4 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.820/108.797/432.455/186.864 ms
+
+$ ping 192.168.0.50
+PING 192.168.0.50 (192.168.0.50): 56 data bytes
+Request timeout for icmp_seq 0
+Request timeout for icmp_seq 1
+^C
+--- 192.168.0.50 ping statistics ---
+3 packets transmitted, 0 packets received, 100.0% packet loss
+
+$ ping 192.168.0.4
+PING 192.168.0.4 (192.168.0.4): 56 data bytes
+Request timeout for icmp_seq 0
+Request timeout for icmp_seq 1
+^C
+--- 192.168.0.4 ping statistics ---
+3 packets transmitted, 0 packets received, 100.0% packet loss
 ```
-以上の結果より，パケットは予期したとおりに送受信されているので，実際にスライスの管理が成功したことを確認できた．
 
-#### STEP.4 スライスの結合
-分割したスライスを，以下のコマンドで再び一つのスライスに統合した．
+　以上の結果より，host2からhost1へのパケットは送信できている一方で、slice_cに属するホストへの送信は失敗しており、スライスの管理ができていることを確認した．
 
+#### STEP.3 スライスの結合
+　STEP3で分割したスライスを，以下のコマンドで再び一つのスライスslice_aに統合した．
 ```
 $ ./bin/slice join slice_b slice_c --into slice_a
 $ ./bin/slice list
@@ -372,34 +428,42 @@ slice_a
   0x4:11
     34:95:db:2c:67:53
 ```
-先程分割されたスライスが正しく結合されている事がわかる．
-以下にブラウザでの可視化の図を示す．
-
+　この時のブラウザでの可視化の図を以下に示す．
 ![](./real_step4.png)
 
-#### STEP.5 パケットの送信
-スライスが結合されたので，host1とhost2，host3とhost4の間でパケットの通信が行えるはずである．その確認を以下のコマンドで行った．
-
+#### STEP.3-2 パケットの送信による確認
+　スライスが結合後は、全てのホストが同じスライスに属しているので、以下のコマンドでhost2から他の全てのホストにパケットを送信できるか確認した．
 ```
-$ ./bin/trema send_packets --source host1 --dest host2
-$ ./bin/trema send_packets --source host1 --dest host3
-$ ./bin/trema show_stats host1
-Packets sent:
-  192.168.0.1 -> 192.168.0.2 = 3 packets
-  192.168.0.1 -> 192.168.0.3 = 2 packets
-Packets received:
-  192.168.0.4 -> 192.168.0.1 = 1 packet
-$ ./bin/trema show_stats host2
-Packets sent:
-  192.168.0.2 -> 192.168.0.3 = 1 packet
-Packets received:
-  192.168.0.1 -> 192.168.0.2 = 2 packets
-$ ./bin/trema show_stats host3
-Packets sent:
-  192.168.0.3 -> 192.168.0.4 = 1 packet
-Packets received:
-  192.168.0.2 -> 192.168.0.3 = 1 packet
-  192.168.0.1 -> 192.168.0.3 = 2 packets
+$ ping 192.168.0.100
+PING 192.168.0.100 (192.168.0.100): 56 data bytes
+64 bytes from 192.168.0.100: icmp_seq=0 ttl=64 time=223.546 ms
+64 bytes from 192.168.0.100: icmp_seq=1 ttl=64 time=1.036 ms
+64 bytes from 192.168.0.100: icmp_seq=2 ttl=64 time=0.857 ms
+64 bytes from 192.168.0.100: icmp_seq=3 ttl=64 time=0.668 ms
+^C
+--- 192.168.0.100 ping statistics ---
+4 packets transmitted, 4 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.668/56.527/223.546/96.429 ms
+
+$ ping 192.168.0.50
+PING 192.168.0.50 (192.168.0.50): 56 data bytes
+64 bytes from 192.168.0.50: icmp_seq=0 ttl=64 time=422.579 ms
+64 bytes from 192.168.0.50: icmp_seq=1 ttl=64 time=0.953 ms
+64 bytes from 192.168.0.50: icmp_seq=2 ttl=64 time=0.987 ms
+^C
+--- 192.168.0.50 ping statistics ---
+3 packets transmitted, 3 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.953/141.506/422.579/198.748 ms
+
+$ ping 192.168.0.4
+PING 192.168.0.4 (192.168.0.4): 56 data bytes
+64 bytes from 192.168.0.4: icmp_seq=0 ttl=64 time=224.851 ms
+64 bytes from 192.168.0.4: icmp_seq=1 ttl=64 time=0.622 ms
+64 bytes from 192.168.0.4: icmp_seq=2 ttl=64 time=1.001 ms
+^C
+--- 192.168.0.4 ping statistics ---
+3 packets transmitted, 3 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.622/75.491/224.851/105.613 ms
 ```
 
-正しくパケットの送受信が行われており，スライスの結合が正常に行えていることが分かる．
+　実際に、パケットの送受信は全てのホストに対して成功しており、スライスの結合が正しくできていることが確認できた．
