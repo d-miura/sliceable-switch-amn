@@ -38,21 +38,19 @@ class Slice
     #for each new slice
     split_to_name.zip(hosts_mac_addrs, is_added).each do |slice_name, mac_addrs, is_a|
       tmp_slice = create(slice_name)
-      if mac_addrs
-        mac_addrs.each do |mac_addr|
-          macs.zip(ports).each do |each, port|
-            each.each do |mac|
-              if mac == mac_addr
-                #only add port when the slice includes the host with the port
-                if is_a && !is_a[port]
-                  tmp_slice.add_port(port)
-                  is_a[port] = true
-                end
-                tmp_slice.add_mac_address(mac_addr, port)
-		base_slice.delete_mac_address(mac_addr,port)
-                base_slice.delete_port(port)
-              end
+      next unless mac_addrs
+      mac_addrs.each do |mac_addr|
+        macs.zip(ports).each do |each, port|
+          each.each do |mac|
+            next unless mac == mac_addr
+            #only add port when the slice includes the host with the port
+            if is_a && !is_a[port]
+              tmp_slice.add_port(port)
+              is_a[port] = true
             end
+            tmp_slice.add_mac_address(mac_addr, port)
+            base_slice.delete_mac_address(mac_addr,port)
+            base_slice.delete_port(port)
           end
         end
       end
