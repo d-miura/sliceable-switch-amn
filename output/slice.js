@@ -1,1 +1,1 @@
-nodes.push({id: 18764998447377, label: '11:11:11:11:11:11', font: {size:15, color:'red', face:'sans'}, image:DIR+'host.png', shape: 'image'});nodes.push({id: 75059993789508, label: '44:44:44:44:44:44', font: {size:15, color:'green', face:'sans'}, image:DIR+'host.png', shape: 'image'});
+nodes.push({id: 18764998447377, label: '11:11:11:11:11:11', font: {size:15, color:'yellow', face:'sans'}, image:DIR+'host.png', shape: 'image'});nodes.push({id: 75059993789508, label: '44:44:44:44:44:44', font: {size:15, color:'blue', face:'sans'}, image:DIR+'host.png', shape: 'image'});
