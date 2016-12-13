@@ -31,4 +31,5 @@
 
 *.*~
 /bin/
-/output/
+/output/*
+!/output/index.html
