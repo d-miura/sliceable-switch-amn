@@ -20,37 +20,44 @@
 ```
   desc 'Split a slice.'
   params do
-    requires :base, type: String, desc: 'Base slice.'
-    requires :into1, type: String, desc: 'Into slice1.'
-    requires :into2, type: String, desc: 'Into slice2.'
+    requires :base_slice_id, type: String, desc: 'Base slice.'
+    requires :into_slices_id, type: String, desc: 'Into slices(multiple).'
   end
-  get 'base_slice_id/:base/into_slices1_id/:into1/into_slices2_id/:into2' do
+  intoAry = params[:into].split(",")
+  get 'base_slice_id/:base_slice_id/into_slices_id/:into_slices_id' do
     rest_api do
-      *into = into1, into2
       Slice.find_by!(name: params[:slice_id]).
-        split(params[:base], *into)
+        split(params[:base_slice_id], intoAry)
     end
   end
-
+```
+```
   desc 'Join a slice.'
   params do
-    requires :base1, type: String, desc: 'Base slice1.'
-    requires :base2, type: String, desc: 'Base slice2.'
-    requires :into, type: String, desc: 'Into slice.'
+    requires :base_slices_id, type: String, desc: 'Base slices(multiple).'
+    requires :into_slice_id, type: String, desc: 'Into slice.'
   end
-  get 'base_slice1_id/:base1/base_slice2_id/:base2/into_slice_id/:into' do
+  baseAry = params[:base].split(",")
+  get 'base_slices_id/:base_slices_id/into_slice_id/:into_slice_id' do
     rest_api do
-      *base = base1, base2
       Slice.find_by!(name: params[:slice_id]).
-        join(*base, params[:into])
+        join(baseAry, params[:into_slice_id])
     end
   end
 ```
 
-既に実装されていたものを参考に
+既に実装されていたものを参考にしてこれらを実装した．```Slice```クラスにおいて定義した，スライスの分割を行うための```split```メソッド，スライスの統合を行うための```join```メソッドをそれぞれ呼び出す処理を行う．  
+以下にスライスの分割，統合それぞれのコマンドについての簡素な説明を示す．
 
 ###①分割
+第１入力引数に分割されるスライスIDである```base_slice_id```，第２入力引数に分割後のそれぞれのスライスIDである```into_slices_id```を入力することで，REST APIによるスライスの分割機能を実現する．このとき，第２引数には```,```区切りで分割先のスライスIDを入力する必要がある．  
+以下に分割機能のコマンドの使い方の例を示す．
+```curl -sS -X GET 'http://localhost:9292/base_slice_id/slice_a/into_slices_id/slice_b,slice_c'```
 
+###②統合
+第１入力引数に統合したいスライス（複数）を```,```で区切ったID，第２入力引数に統合後に新たに生成されるスライスIDを入力することで，REST APIによるスライスの統合機能を実現する．  
+以下に統合機能のコマンドの使い方の例を示す．
+```curl -sS -X GET 'http://localhost:9292/base_slices_id/slice_a,slice_b/into_slice_id/slice_c'```
 
 
 ## 実機での検証
