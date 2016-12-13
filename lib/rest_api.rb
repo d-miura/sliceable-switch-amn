@@ -178,7 +178,8 @@ class RestApi < Grape::API
   end
   get 'base_slice_id/:base_slice_id/into_slices_id/:into_slices_id' do
     rest_api do
-    Slice.split(params[:base_slice_id], params[:into_slices_id].split(","))
+      arr = params[:into_slices_id].split(",")
+      Slice.split(params[:base_slice_id], arr[0],arr[1])
     end
   end
 
