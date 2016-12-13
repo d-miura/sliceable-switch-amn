@@ -23,7 +23,7 @@
 <script type="text/javascript">
 var last_date = [1, 2];
 var now_date = [3, 4];
-var nodes = [];
+var jsnodes = [];
 var edges = [];
 var network = [];
 var paths = [];
@@ -54,7 +54,7 @@ function getUpdate( ) {
     now_date[i] = date.getTime()
     // console.log(now_date);
     if(now_date[i] != last_date[i]){
-      console.log(nodes);
+      // console.log(nodes);
       last_date[i] = now_date[i];
       require(0);
     }
@@ -74,25 +74,23 @@ function require(pathIndex) {
   req.send("");
   eval(req.responseText);
 
-/*
-  for(i=0;i<paths[pathIndex].length;i++){
-    labelID = paths[pathIndex][i].label;
-    fromID = paths[pathIndex][i].from;
-    toID = paths[pathIndex][i].to;
-    edges.some(function(v, i){
-        if (v.from == fromID && v.to == toID || v.to == fromID && v.from == toID){
-           edges.splice(i,1);
+  for(i=0; i < nodes.length; i++){
+    labelID = nodes[i].label;
+    node = nodes[i];
+    jsnodes.some(function(v, i){
+        if (v.id == labelID){
+           jsnodes.splice(i,1);
         }
     });
-    edges.push({from: fromID, to: toID, color: 'red', arrows: 'to', label:labelID});
+    jsnodes.push(node);
   }
-*/
+
   // console.log(edges);
 
   // create a network
   var container = document.getElementById('mynetwork');
   var data = {
-    nodes: nodes,
+    nodes: jsnodes,
     edges: edges
   };
 
