@@ -253,7 +253,7 @@ $ ./bin/rackup
 $ curl -sS -X POST -d '{"name": "slice1"}' 'http://localhost:9292/slices' -H Content-Type:application/json -v
 $ curl -sS -X POST -d '{"name": "slice2"}' 'http://localhost:9292/slices' -H Content-Type:application/json -v
 $ curl -sS -X POST -d '{"name": "11:11:11:11:11:11"}' 'http://localhost:9292/slices/slice1/ports/0x1:1/mac_addresses' -H Content-Type:application/json -v
-$ curl -sS -X POST -d '{"name": "44:44:44:44:44:44"}'' 'http://localhost:9292/slices/slice2/ports/0x6:6/mac_addresses' -H Content-Type:application/json -v
+$ curl -sS -X POST -d '{"name": "44:44:44:44:44:44"}' 'http://localhost:9292/slices/slice2/ports/0x6:6/mac_addresses' -H Content-Type:application/json -v
 ```
 
 上記コマンド実行後のブラウザの様子を以下の図に示す．このとき，ホスト間ではパケットの送受信を行うことはできなかった．
@@ -267,7 +267,7 @@ curl -sS -X GET 'http://localhost:9292/base_slices_id/slice1,slice2/into_slice_i
 ```
 このとき，スライスの結合が正しく動作したことが，以下の図の色分けより確認できる．実行後，異なるスライス(異なる色分け)だったものが同一のスライス(同じ色分け)へブラウザ上で遷移している．また，このときホスト間でパケットの送受信を行うことができた．
 
-![](./join.png)
+![](./join2.png)
 
 
 次に，只今作成した```slice3```(ホストが2つ繋がっている状態)を2つのスライス```slice4```，```slice5```に分割することを試みる．```curl```コマンドを用いて，上記の処理を行うメッセージをGETメソッドでサーバに対して送った．
@@ -278,7 +278,7 @@ curl -sS -X GET 'http://localhost:9292/base_slice_id/slice3/into_slices_id/slice
 
 このとき，正しくスライスの分割が動作したことが，以下の図の色分けよりわかる．実行後，同一のスライス(同じ色分け)から異なるスライス(異なる色分け)へとブラウザ上で遷移している．また，このときホスト間でパケットの送受信を行うことはできなかった．
 
-![](./split.png)
+![](./split2.png)
 
 
 ## 5. 実機での動作検証
