@@ -40,8 +40,8 @@ host1(MACアドレス: 11:11:11:11:11:11)・host2(22:22:22:22:22)・host3(33:33:
 * /lib/slice.rb
  * スライスの出力ファイルslice.jsを出力するメソッドwrite_slice_infoを追加
 
-## 課題3 REST APIの追加
-### 実装内容
+## 3. REST APIの追加
+### 3.1 実装内容
 　スライスの分割・統合を行うREST APIを追加するために，以下の通り `lib/rest_api.rb`に分割を行う`Split a slice.`，統合を行う`Join a slice.`から始まるブロックをそれぞれ追加した．
 
  ```
