@@ -177,7 +177,7 @@ class RestApi < Grape::API
   get 'base_slice_id/:base_slice_id/into_slices_id/:into_slices_id' do
     rest_api do
       Slice.find_by!(name: params[:slice_id]).
-        split(params[:base], intoAry)
+        split(params[:base_slice_id], intoAry)
     end
   end
 
@@ -190,7 +190,7 @@ class RestApi < Grape::API
   get 'base_slices_id/:base_slices_id/into_slice_id/:into_slice_id' do
     rest_api do
       Slice.find_by!(name: params[:slice_id]).
-        join(baseAry, params[:into])
+        join(baseAry, params[:into_slice_id])
     end
   end
 end
