@@ -24,6 +24,7 @@
 var last_date = [1, 2];
 var now_date = [3, 4];
 var jsnodes = [];
+var nodes = [];
 var edges = [];
 var network = [];
 var paths = [];
@@ -68,29 +69,40 @@ function require(pathIndex) {
   var req = new XMLHttpRequest();
   req.open("GET", "./topology.js", false);
   req.send("");
+  nodes = [];
   eval(req.responseText);
+  topology_nodes = nodes.slice(0);
   var req = new XMLHttpRequest();
   req.open("GET", "./slice.js", false);
   req.send("");
+  nodes = [];
   eval(req.responseText);
+  slice_nodes = nodes.slice(0);
+  nodes = topology_nodes.slice(0);
+  console.log(nodes);
+  console.log(slice_nodes);
 
-  for(i=0; i < nodes.length; i++){
-    labelID = nodes[i].label;
-    node = nodes[i];
-    jsnodes.some(function(v, i){
-        if (v.id == labelID){
-           jsnodes.splice(i,1);
-        }
-    });
-    jsnodes.push(node);
+  for(i=0; i<slice_nodes.length; i++){
+    for(j=0; j<nodes.length; j++){
+      console.log(slice_nodes[i],j);
+      if(typeof nodes[j] === "undefined"){
+        continue;
+      }
+      if(slice_nodes[i].id == nodes[j].id ){
+          //spliceメソッドで要素を削除
+          nodes.splice(j, 1);
+      }
+    }
+    nodes.push(slice_nodes[i]);
   }
+
 
   // console.log(edges);
 
   // create a network
   var container = document.getElementById('mynetwork');
   var data = {
-    nodes: jsnodes,
+    nodes: nodes,
     edges: edges
   };
 
@@ -105,7 +117,7 @@ function require(pathIndex) {
 var req = new XMLHttpRequest();
 req.open("GET", "./topology.js", false);
 req.send("");
-eval(req.responseText);
+// eval(req.responseText);
 require(0)
 </script>
 </html>
