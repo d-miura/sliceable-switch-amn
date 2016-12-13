@@ -79,9 +79,15 @@ class Path < Trema::Controller
 
   def flow_mod_delete_to_each_switch
     path.each_slice(2) do |in_port, out_port|
-      send_flow_mod_delete(out_port.dpid,
-                           match: exact_match(in_port.number),
-                           out_port: out_port.number)
+      ether_types = [0x0800, 0x0806]
+      ether_types.each do |ether_type|
+        match = exact_match(in_port.number, ether_type)
+        if match != nil then
+          send_flow_mod_delete(out_port.dpid,
+                               match: match,
+                               out_port: out_port.number)
+        end
+      end
     end
   end
 

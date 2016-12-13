@@ -143,6 +143,8 @@ class Slice
       fail PortAlreadyExistsError, "Port #{port.name} already exists"
     end
     @ports[port] = [].freeze
+    puts("add port")
+    p @ports
   end
 
   def delete_port(port_attrs)
