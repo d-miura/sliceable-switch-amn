@@ -29,8 +29,112 @@
  　スライスの分割・結合を実装するにあたって修正、作成した主なファイルについて説明する．
 * /bin/slice
  * スライスの分割・結合を実行する際のコマンドを定義
+ 既存のコマンドを参考に，1.で示した引数の渡し方に対応するように下記の通り実装した．
+ ```ruby
+ desc 'Split virtual slices'
+ command :split do |c|
+   c.desc 'Slice names split into'
+   c.flag [:i, :into]
+   c.desc 'Location to find socket files'
+   c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+   c.action do |_global_options, options, args|
+     fail '--into option is mandatory.' unless options[:into]
+     fail 'invalid arguments' if args.length != 2
+     slice(options[:socket_dir]).split(args[0], options[:into], args[1])
+   end
+ end
+
+ desc 'Join virtual slices'
+ command :join do |c|
+   c.desc 'Slice name join into'
+   c.flag [:i, :into]
+   c.desc 'Location to find socket files'
+   c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+   c.action do |_global_options, options, args|
+     fail '--into option is mandatory.' unless options[:into]
+     fail 'arguments are too few.' if args.length != 2
+     slice(options[:socket_dir]).join(args, options[:into])
+   end
+ end
+ ```
 * /lib/slice.rb
  * スライスの分割・結合を行うメソッドとしてsplitとjoinを追加
+ 下記に示す通り，それぞれ実装した．
+```ruby
+def self.split(base, *into)
+  base_slice = find_by!(name: base)#splited slice (object)
+  split_to_name = Array.new().tap{|ary| into.each{|each| ary << each.split(":")[0]}} #slice names spliting to
+  split_to_name.each{|each| fail SliceAlreadyExistsError, "Slice #{each} already exists" if find_by(name: each)}
+
+  #each array in hosts_mac_addrs corresponds to each host
+  hosts_mac_addrs = Array.new().tap{|ary| into.each{|each| each.split(":")[1] ? ary << each.split(":", 2)[1].split(",") : ary << [] }}
+  ports = base_slice.ports
+  #each array in macs corresponds to each port
+  macs = []
+  ports.each{|each| macs << base_slice.mac_addresses(each)} if ports
+  #managing port is already added or not
+  #find_port returns fail when port isn't added and add_port return fail when port is already added. so it needed.
+  is_added = Array.new(2).tap{|ary| ary = {}.tap{|h| ports.each{|port| h[port] = false} if ports}}
+  #for each new slice
+  split_to_name.zip(hosts_mac_addrs, is_added).each do |slice_name, mac_addrs, is_a|
+    tmp_slice = create(slice_name)
+    next unless mac_addrs
+    mac_addrs.each do |mac_addr|
+      macs.zip(ports).each do |each, port|
+        each.each do |mac|
+          next unless mac == mac_addr
+          #only add port when the slice includes the host with the port
+          if is_a && !is_a[port]
+            tmp_slice.add_port(port)
+            is_a[port] = true
+          end
+          tmp_slice.add_mac_address(mac_addr, port)
+          base_slice.delete_mac_address(mac_addr,port)
+          base_slice.delete_port(port)
+        end
+      end
+    end
+  end
+  destroy(base_slice.name) if base_slice.ports.length.zero?
+  puts "split #{base} into #{into[0].split(":")[0]} and #{into[1].split(":")[0]}"
+  write_slice_info
+end
+```
+主な動作としては，分割元スライスに登録されているMACアドレスとポートのペアを全て取り出して保持し，
+分割先のスライスに新たにそのポートを追加した後，MACアドレスを登録する．
+全ての登録が終了したら，分割元スライスのエントリがなくなっていれば分割元スライスを削除，
+残っているならばスライスも残す仕様となっている．
+```ruby
+def self.join(base, into)
+  #slices (object)
+  base_slices = Array.new().tap{|slices| base.each{|each| slices << find_by!(name: each)}}
+  fail SliceAlreadyExistsError, "Slice #{into} already exists" if find_by(name: into)
+
+  #new slice(object)
+  join_to = create(into)
+  #managing port is already added or not
+  is_added = {}.tap{|h| base_slices.each{|slice| slice.ports.each{|port| h[port] = false}}}
+  base_slices.each do |base_slice|
+    base_slice.ports.each do |port|
+      if is_added && !is_added[port]
+        join_to.add_port(port)
+        is_added[port] = true
+      end
+      base_slice.mac_addresses(port).each{|mac| join_to.add_mac_address(mac, port)}
+    end
+    destroy(base_slice.name)
+  end
+  puts "join #{base[0]} and #{base[1]} into #{into}"
+  write_slice_info
+end
+```
+主な動作は，結合元のそれぞれのスライスのすべてのポートに関してeachメソッドで網羅し，
+その都度ポートとMACアドレスを結合先スライスに登録している．
+
+split,joinに共通するところとしては，新たに作成するスライスが存在するかどうかの確認や，
+結合及び分割元のスライスが存在するかどうかの確認する処理を行っている．
 
 ## 2. スライスの可視化
 ### 2.1 使用方法
