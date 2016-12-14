@@ -28,7 +28,7 @@
 ### 1.2 実装内容
  　スライスの分割・結合を実装するにあたって修正、作成した主なファイルについて説明する．
 * /bin/slice
- * スライスの分割・結合を実行する際のコマンドを定義
+ * スライスの分割・結合を実行する際のコマンドを定義  
  既存のコマンドを参考に，1.で示した引数の渡し方に対応するように下記の通り実装した．
  ```ruby
  desc 'Split virtual slices'
@@ -60,8 +60,8 @@
  end
  ```
 * /lib/slice.rb
- * スライスの分割・結合を行うメソッドとしてsplitとjoinを追加
- 下記に示す通り，それぞれ実装した．
+ * スライスの分割・結合を行うメソッドとしてsplitとjoinを追加  
+下記に示す通り，それぞれ実装した．
 ```ruby
 def self.split(base, *into)
   base_slice = find_by!(name: base)#splited slice (object)
